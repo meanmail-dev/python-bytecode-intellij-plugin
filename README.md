@@ -4,7 +4,7 @@
 
 https://plugins.jetbrains.com/plugin/00000
 
-[meanmail.dev](https://meanmail.dev/plugin/6?utm_source=guthub&utm_medium=readme&utm_campaign=python-bytecode&utm_content=meanmail.dev)
+[meanmail.dev](https://meanmail.dev/plugin/8?utm_source=guthub&utm_medium=readme&utm_campaign=python-bytecode&utm_content=meanmail.dev)
 
 Your ratings and feedback are very important. The feature will appear the faster the more people request it.
 

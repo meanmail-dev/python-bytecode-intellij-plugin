@@ -1,0 +1,18 @@
+<idea-plugin url="https://meanmail.dev/plugin/8">
+    <id>dev.meanmail.plugin.python-bytecode</id>
+    <name>Python Bytecode</name>
+    <version>SNAPSHOT</version>
+    <idea-version since-build="203"/>
+    <vendor email="plugin@meanmail.ru" url="https://meanmail.dev">meanmail</vendor>
+    <description></description>
+    <change-notes></change-notes>
+
+    <depends>com.intellij.modules.python</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Python bytecode"
+                    anchor="right"
+                    factoryClass="dev.meanmail.tools.PythonBytecodeTool"/>
+    </extensions>
+
+</idea-plugin>

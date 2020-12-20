@@ -12,10 +12,12 @@ version = "${project.properties["version"]}-${project.properties["postfix"]}"
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation("io.sentry:sentry:3.1.0")
     testImplementation("junit:junit:4.13")
 }
 
@@ -69,8 +71,11 @@ fun readChangeNotes(pathname: String): String {
         }
     }
 
-    return notes.joinToString("</p><br><p>", prefix = "<p>",
-            postfix = "</p><br>") {
+    return notes.joinToString(
+        "</p><br><p>",
+        prefix = "<p>",
+        postfix = "</p><br>"
+    ) {
         it.joinToString("<br>")
     } +
             "See the full change notes on the <a href='" +

@@ -13,6 +13,7 @@
         <toolWindow id="Python bytecode"
                     anchor="right"
                     factoryClass="dev.meanmail.tools.PythonBytecodeTool"/>
+        <errorHandler implementation="dev.meanmail.diagnostic.SentryErrorReporter"/>
     </extensions>
 
 </idea-plugin>

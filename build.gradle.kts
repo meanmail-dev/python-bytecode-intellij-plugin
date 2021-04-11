@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
-    kotlin("jvm") version "1.4.20"
-    id("org.jetbrains.intellij") version "0.6.5"
+    kotlin("jvm") version "1.4.30"
+    id("org.jetbrains.intellij") version "0.7.2"
 }
 
 group = "dev.meanmail"
@@ -18,7 +18,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.sentry:sentry:3.1.0")
-    testImplementation("junit:junit:4.13")
+    testImplementation("junit:junit:4.13.2")
 }
 
 configure<JavaPluginConvention> {
@@ -47,7 +47,18 @@ intellij {
     } else {
         project.properties["IdeVersion"].toString()
     }
-    setPlugins(project.properties["pythonPluginVersion"].toString())
+    type = project.properties["ideType"].toString()
+    when (type) {
+        "PY" -> {
+            setPlugins("python")
+        }
+        "PC" -> {
+            setPlugins("PythonCore")
+        }
+        else -> {
+            setPlugins(project.properties["pythonPluginVersion"].toString())
+        }
+    }
 }
 
 fun readChangeNotes(pathname: String): String {

@@ -2,10 +2,30 @@
     <id>dev.meanmail.plugin.python-bytecode</id>
     <name>Python Bytecode</name>
     <version>SNAPSHOT</version>
-    <idea-version since-build="203"/>
+    <idea-version since-build="243"/>
     <vendor email="plugin@meanmail.ru" url="https://meanmail.dev">meanmail</vendor>
-    <description></description>
-    <change-notes></change-notes>
+    <description><![CDATA[View bytecode for python files (Python 3.4 and above).
+
+<ul>
+    <li>
+        <a href="https://meanmail.dev?utm_source=jetbrains-ide&utm_medium=plugin-description&utm_campaign=python-bytecode&utm_content=more-info">
+            meanmail.dev
+        </a></li>
+    <li><a href="https://github.com/meanmail-dev/python-bytecode-intellij-plugin">
+        GitHub
+    </a></li>
+</ul>
+
+Your ratings and feedback are very important. The feature will appear the faster the more people request it.
+]]></description>
+    <change-notes><![CDATA[<h3>2025.1 (July, 28, 2025)</h3>
+
+* Support latest IDEs
+
+<h3>2020.1 (December, 20, 2020)</h3>
+
+First release
+]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.python</depends>
@@ -14,7 +34,7 @@
         <toolWindow id="Python bytecode"
                     anchor="right"
                     factoryClass="dev.meanmail.tools.PythonBytecodeTool"/>
-        <errorHandler implementation="dev.meanmail.diagnostic.SentryErrorReporter"/>
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
     </extensions>
 
 </idea-plugin>

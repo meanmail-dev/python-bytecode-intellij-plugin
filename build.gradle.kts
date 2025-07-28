@@ -1,96 +1,75 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun config(name: String) = project.findProperty(name).toString()
 
 repositories {
     mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 plugins {
     java
 // https://plugins.jetbrains.com/docs/intellij/using-kotlin.html#kotlin-standard-library
-    kotlin("jvm") version "1.5.10"
-    id("org.jetbrains.intellij") version "1.9.0"
+    alias(libs.plugins.kotlin) // Kotlin support
+    alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
 }
 
 group = config("group")
 version = config("version")
 
 dependencies {
-    implementation("io.sentry:sentry:6.4.3")
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-}
 
-intellij {
-    pluginName.set(config("pluginName"))
-    version.set(
-        if (config("platformVersion") == "eap") {
-            "LATEST-EAP-SNAPSHOT"
-        } else {
-            config("platformVersion")
+    testImplementation(libs.junit)
+
+    intellijPlatform {
+        create(config("platformType"), config("platformVersion"))
+        compatiblePlugins(providers.gradleProperty("plugins").map { it.split(',') })
+        val platformBundledPlugins = providers.gradleProperty("platformBundledPlugins").map { it.split(',') }
+        if (platformBundledPlugins.isPresent && platformBundledPlugins.get().isNotEmpty()) {
+            bundledPlugins(platformBundledPlugins)
         }
-    )
-    type.set(config("platformType"))
-    updateSinceUntilBuild.set(false)
 
-    val usePlugins = config("usePlugins").split(',')
-    for (plugin in usePlugins) {
-        if (plugin.isEmpty()) {
-            continue
-        }
-        val (name, version) = plugin.split(':')
-        if (name == "python") {
-            when (type.get()) {
-                "PY" -> {
-                    plugins.add("python")
-                }
-
-                "PC" -> {
-                    plugins.add("PythonCore")
-                }
-
-                else -> {
-                    plugins.add("PythonCore:${version}")
-                }
-            }
-        } else {
-            plugins.add(plugin)
-        }
+        pluginVerifier()
+        zipSigner()
+        testFramework(TestFrameworkType.Platform)
     }
 }
 
-fun readChangeNotes(pathname: String): String {
-    val lines = file(pathname).readLines()
-
-    val notes: MutableList<MutableList<String>> = mutableListOf()
-
-    var note: MutableList<String>? = null
-
-    for (line in lines) {
-        if (line.startsWith('#')) {
-            if (notes.size == 3) {
-                break
-            }
-            note = mutableListOf()
-            notes.add(note)
-            val header = line.trimStart('#')
-            note.add("<b>$header</b>")
-        } else if (line.isNotBlank()) {
-            note?.add(line)
+intellijPlatform {
+    pluginConfiguration {
+        name.set(config("pluginName"))
+        version.set(project.version.toString())
+        ideaVersion {
+            sinceBuild.set(config("platformSinceBuild"))
+            untilBuild.set(provider { null })
+        }
+        productDescriptor {
+            code = "PKUBERNETESCONT"
+            releaseDate = "20250725"
+            releaseVersion = "60"
+            optional = true
         }
     }
 
-    return notes.joinToString(
-        "</p><br><p>",
-        prefix = "<p>",
-        postfix = "</p><br>"
-    ) {
-        it.joinToString("<br>")
-    } +
-            "See the full change notes on the <a href='" +
-            config("repository") +
-            "/blob/master/CHANGES.md'>github</a>"
+    buildSearchableOptions = false
+
+    pluginVerification.ides {
+        recommended()
+    }
+
+    publishing {
+        try {
+            token.set(file("token.txt").readLines()[0])
+        } catch (_: Exception) {
+            println("No token.txt found")
+        }
+        channels.set(listOf(config("publishChannel")))
+    }
 }
 
 tasks {
@@ -100,7 +79,7 @@ tasks {
             targetCompatibility = it
         }
         withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = it
+            compilerOptions.jvmTarget.set(JvmTarget.fromTarget(it))
         }
     }
 
@@ -113,22 +92,5 @@ tasks {
         useJUnit()
 
         maxHeapSize = "1G"
-    }
-
-    patchPluginXml {
-        version.set(project.version.toString())
-        pluginDescription.set(file("description.html").readText())
-        changeNotes.set(readChangeNotes("CHANGES.md"))
-        sinceBuild.set(config("platformSinceBuild"))
-    }
-
-    publishPlugin {
-        dependsOn("buildPlugin")
-        token.set(file("token.txt").readLines()[0])
-        channels.set(listOf(config("publishChannel")))
-    }
-
-    buildSearchableOptions {
-        enabled = false
     }
 }

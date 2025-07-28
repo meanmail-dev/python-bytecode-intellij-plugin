@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
@@ -86,7 +87,6 @@ fun execPython(sdk: Sdk, path: String, filename: String): String? {
         }
         return proc.inputStream.bufferedReader().readText()
     } catch (e: IOException) {
-        e.printStackTrace()
         return null
     }
 }
@@ -100,9 +100,21 @@ fun getBytecode(project: Project): String {
         return "No Python file"
     }
 
+    // Get the current document content
+    val fileDocumentManager = FileDocumentManager.getInstance()
+    val document = fileDocumentManager.getDocument(file) ?: return "Cannot get document"
+    val currentContent = document.text
+
+    // Create a temporary file with the current document content
+    val tempFile = File.createTempFile("python_bytecode_", ".py")
+    tempFile.writeText(currentContent)
+    tempFile.deleteOnExit() // Ensure the file is deleted when the JVM exits
+
+    // Create a temporary script file
     val scriptResource = object {}.javaClass.getResource("/get_bytecode.py")
     val script = File.createTempFile("tmp", null)
     script.writeText(scriptResource!!.readText())
+    script.deleteOnExit() // Ensure the file is deleted when the JVM exits
 
-    return execPython(sdk, script.path, file.path) ?: "Compilation error"
+    return execPython(sdk, script.path, tempFile.path) ?: "Compilation error"
 }

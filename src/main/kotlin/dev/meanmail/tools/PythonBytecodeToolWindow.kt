@@ -19,7 +19,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.python.sdk.PythonSdkType
 import java.awt.Color
 import java.io.File
@@ -50,18 +49,10 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
 
     private fun createEditor(): EditorEx {
         val editorFactory = EditorFactory.getInstance()
-        val document = editorFactory.createDocument("Click Update button")
+        val document = editorFactory.createDocument("Click the Update button in the toolbar")
         val editor: EditorEx = editorFactory.createViewer(
             document, project, EditorKind.MAIN_EDITOR
         ) as EditorEx
-        editor.permanentHeaderComponent = panel {
-            row {
-                button("Update") {
-                    updateBytecode()
-                }
-            }
-        }
-        editor.headerComponent = editor.permanentHeaderComponent
 
         return editor
     }

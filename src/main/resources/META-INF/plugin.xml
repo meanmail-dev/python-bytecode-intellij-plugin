@@ -42,4 +42,13 @@ First release
                   topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
     </projectListeners>
 
+    <actions>
+        <action id="PythonBytecode.UpdateAction"
+                class="dev.meanmail.tools.UpdateBytecodeAction"
+                text="Update Bytecode"
+                description="Update the Python bytecode display"
+                icon="AllIcons.Actions.Refresh">
+        </action>
+    </actions>
+
 </idea-plugin>

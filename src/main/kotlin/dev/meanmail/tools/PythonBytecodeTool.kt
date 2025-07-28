@@ -1,5 +1,7 @@
 package dev.meanmail.tools
 
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
@@ -26,6 +28,13 @@ class PythonBytecodeTool : ToolWindowFactory {
             pluginDevToolWindow.component, null, false
         )
         toolWindow.contentManager.addContent(content)
+
+        // Add the update action to the tool window toolbar
+        val actionManager = ActionManager.getInstance()
+        val updateAction = actionManager.getAction("PythonBytecode.UpdateAction")
+        val actionGroup = DefaultActionGroup()
+        actionGroup.add(updateAction)
+        toolWindow.setTitleActions(listOf(updateAction))
 
         // Store the tool window component for later use
         toolWindowComponents[project] = pluginDevToolWindow

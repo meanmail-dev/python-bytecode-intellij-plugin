@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
 
-class PythonBytecodeToolWindow(private val project: Project) : Disposable {
+class PythonBytecodeToolWindow(private val project: Project) : Disposable, PythonBytecodeToolWindowComponent {
     private val editor: EditorEx = createEditor()
 
     private fun createEditor(): EditorEx {
@@ -29,7 +29,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable {
         editor.permanentHeaderComponent = panel {
             row {
                 button("Update") {
-                    updateBytecode(editor)
+                    updateBytecode()
                 }
             }
         }
@@ -38,7 +38,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable {
         return editor
     }
 
-    private fun updateBytecode(editor: EditorEx) {
+    private fun updateBytecodeInternal(editor: EditorEx) {
         val text = getBytecode(project)
         ApplicationManager.getApplication().runWriteAction {
             editor.document.setReadOnly(false)
@@ -47,7 +47,11 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable {
         }
     }
 
-    val content: JComponent
+    override fun updateBytecode() {
+        updateBytecodeInternal(editor)
+    }
+
+    override val component: JComponent
         get() {
             return editor.component
         }

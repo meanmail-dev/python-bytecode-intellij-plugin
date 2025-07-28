@@ -37,4 +37,9 @@ First release
         <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
     </extensions>
 
+    <projectListeners>
+        <listener class="dev.meanmail.tools.PythonBytecodeFileListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+    </projectListeners>
+
 </idea-plugin>

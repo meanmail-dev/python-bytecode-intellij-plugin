@@ -17,24 +17,25 @@ import javax.swing.JComponent
 
 
 class PythonBytecodeToolWindow(private val project: Project) {
-    private val editor: EditorEx
-        get() {
-            val editorFactory = EditorFactory.getInstance()
-            val document = editorFactory.createDocument("Click Update button")
-            val editor: EditorEx = editorFactory.createViewer(
-                document, project, EditorKind.MAIN_EDITOR
-            ) as EditorEx
-            editor.permanentHeaderComponent = panel {
-                row {
-                    button("Update") {
-                        updateBytecode(editor)
-                    }
+    private val editor: EditorEx = createEditor()
+
+    private fun createEditor(): EditorEx {
+        val editorFactory = EditorFactory.getInstance()
+        val document = editorFactory.createDocument("Click Update button")
+        val editor: EditorEx = editorFactory.createViewer(
+            document, project, EditorKind.MAIN_EDITOR
+        ) as EditorEx
+        editor.permanentHeaderComponent = panel {
+            row {
+                button("Update") {
+                    updateBytecode(editor)
                 }
             }
-            editor.headerComponent = editor.permanentHeaderComponent
-
-            return editor
         }
+        editor.headerComponent = editor.permanentHeaderComponent
+
+        return editor
+    }
 
     private fun updateBytecode(editor: EditorEx) {
         val text = getBytecode(project)

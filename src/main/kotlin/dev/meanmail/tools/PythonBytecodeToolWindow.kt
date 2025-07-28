@@ -87,13 +87,13 @@ fun getBytecode(project: Project): String {
     val sdk = getSdk(project) ?: return "No Python SDK"
     val manager = FileEditorManager.getInstance(project)
     val file = manager.selectedEditor?.file ?: return "No file"
-    if (file.extension?.toLowerCase() != "py") {
+    if (file.extension?.lowercase() != "py") {
         return "No Python file"
     }
 
     val scriptResource = object {}.javaClass.getResource("/get_bytecode.py")
     val script = File.createTempFile("tmp", null)
-    script.writeText(scriptResource.readText())
+    script.writeText(scriptResource!!.readText())
 
     return execPython(sdk, script.path, file.path) ?: "Compilation error"
 }

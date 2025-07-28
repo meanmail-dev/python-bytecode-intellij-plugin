@@ -5,6 +5,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.SelectionEvent
 import com.intellij.openapi.editor.event.SelectionListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -36,6 +38,9 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
     // Selection listener for the source editor
     private var selectionListener: SelectionListener? = null
 
+    // Caret listener for the source editor
+    private var caretListener: CaretListener? = null
+
     // Reference to the current source editor
     private var currentSourceEditor: Editor? = null
 
@@ -61,7 +66,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
     }
 
     /**
-     * Updates the bytecode display with the current file's bytecode and sets up the selection listener.
+     * Updates the bytecode display with the current file's bytecode and sets up the listeners.
      *
      * @param editor The editor to update
      */
@@ -73,8 +78,9 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
             editor.document.setReadOnly(true)
         }
 
-        // After updating bytecode, setup selection listener
+        // After updating bytecode, setup listeners
         setupSelectionListener()
+        setupCaretListener()
     }
 
     /**
@@ -82,8 +88,8 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
      * This listener will highlight the corresponding bytecode when text is selected in the source editor.
      */
     private fun setupSelectionListener() {
-        // Remove previous listener if exists
-        removeSelectionListener()
+        // Remove all previous listeners
+        removeAllListeners()
 
         // Get current editor
         val fileEditorManager = FileEditorManager.getInstance(project)
@@ -101,8 +107,8 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
     }
 
     /**
-     * Removes the selection listener from the source editor and clears any highlights.
-     * This is called when the bytecode is updated or when the tool window is disposed.
+     * Removes the selection listener from the source editor.
+     * This is called when cleaning up individual listeners.
      */
     private fun removeSelectionListener() {
         currentSourceEditor?.let { editor ->
@@ -111,6 +117,46 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
             }
         }
         selectionListener = null
+    }
+
+    /**
+     * Sets up a caret listener on the current source editor.
+     * This listener will highlight the corresponding bytecode when the caret position changes.
+     */
+    private fun setupCaretListener() {
+        // Get current editor (should already be set by setupSelectionListener)
+        val currentEditor = currentSourceEditor ?: return
+
+        // Create and add caret listener
+        caretListener = object : CaretListener {
+            override fun caretPositionChanged(e: CaretEvent) {
+                highlightBytecodeForCaret(e)
+            }
+        }
+
+        currentEditor.caretModel.addCaretListener(caretListener!!)
+    }
+
+    /**
+     * Removes the caret listener from the source editor.
+     * This is called when the bytecode is updated or when the tool window is disposed.
+     */
+    private fun removeCaretListener() {
+        currentSourceEditor?.let { editor ->
+            caretListener?.let { listener ->
+                editor.caretModel.removeCaretListener(listener)
+            }
+        }
+        caretListener = null
+    }
+
+    /**
+     * Removes all listeners from the source editor and clears any highlights.
+     * This is called when the bytecode is updated or when the tool window is disposed.
+     */
+    private fun removeAllListeners() {
+        removeSelectionListener()
+        removeCaretListener()
         currentSourceEditor = null
 
         // Clear existing highlights
@@ -129,6 +175,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
 
     /**
      * Highlights the bytecode that corresponds to the selected text in the source editor.
+     * If no text is selected, highlights the bytecode for the line where the cursor is positioned.
      *
      * @param e The selection event containing information about the selection
      */
@@ -136,15 +183,55 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
         // Clear previous highlights
         clearHighlights()
 
-        // If no selection, return
-        if (e.newRange.startOffset == e.newRange.endOffset) return
-
-        // Get selected lines (1-based to match Python line numbers)
+        // Get document
         val document = e.editor.document
-        val startLine = document.getLineNumber(e.newRange.startOffset) + 1
-        val endLine = document.getLineNumber(e.newRange.endOffset) + 1
-        val selectedLines = (startLine..endLine).toSet()
 
+        // Check if there's a selection
+        val selectedLines: Set<Int>
+        if (e.newRange.startOffset == e.newRange.endOffset) {
+            // No selection, use the line where cursor is positioned
+            val cursorLine = document.getLineNumber(e.newRange.startOffset) + 1
+            selectedLines = setOf(cursorLine)
+        } else {
+            // Get selected lines (1-based to match Python line numbers)
+            val startLine = document.getLineNumber(e.newRange.startOffset) + 1
+            val endLine = document.getLineNumber(e.newRange.endOffset) + 1
+            selectedLines = (startLine..endLine).toSet()
+        }
+
+        // Highlight the bytecode for the selected lines
+        highlightBytecodeForLines(selectedLines)
+    }
+
+    /**
+     * Highlights the bytecode that corresponds to the line where the caret is positioned.
+     *
+     * @param e The caret event containing information about the caret position
+     */
+    private fun highlightBytecodeForCaret(e: CaretEvent) {
+        // Clear previous highlights
+        clearHighlights()
+
+        // Get document
+        val document = e.editor.document
+
+        // Get the caret offset, return if caret is null
+        val caretOffset = e.caret?.offset ?: return
+
+        // Get the line where the caret is positioned (1-based to match Python line numbers)
+        val caretLine = document.getLineNumber(caretOffset) + 1
+        val selectedLines = setOf(caretLine)
+
+        // Highlight the bytecode for the caret line
+        highlightBytecodeForLines(selectedLines)
+    }
+
+    /**
+     * Highlights the bytecode that corresponds to the specified source lines.
+     *
+     * @param selectedLines The set of source line numbers (1-based) to highlight
+     */
+    private fun highlightBytecodeForLines(selectedLines: Set<Int>) {
         // Parse bytecode to find corresponding lines
         val bytecodeText = editor.document.text
         if (bytecodeText.isBlank() || bytecodeText.startsWith("No Python")) {
@@ -220,7 +307,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
         }
 
     override fun dispose() {
-        removeSelectionListener()
+        removeAllListeners()
         EditorFactory.getInstance().releaseEditor(editor)
     }
 }

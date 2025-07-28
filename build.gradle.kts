@@ -28,7 +28,10 @@ dependencies {
 
     intellijPlatform {
         create(config("platformType"), config("platformVersion"))
-        compatiblePlugins(providers.gradleProperty("plugins").map { it.split(',') })
+        val plugins = providers.gradleProperty("plugins").map { it.split(',') }
+        if (plugins.isPresent && plugins.get().isNotEmpty()) {
+            compatiblePlugins(plugins)
+        }
         val platformBundledPlugins = providers.gradleProperty("platformBundledPlugins").map { it.split(',') }
         if (platformBundledPlugins.isPresent && platformBundledPlugins.get().isNotEmpty()) {
             bundledPlugins(platformBundledPlugins)
@@ -47,12 +50,6 @@ intellijPlatform {
         ideaVersion {
             sinceBuild.set(config("platformSinceBuild"))
             untilBuild.set(provider { null })
-        }
-        productDescriptor {
-            code = "PKUBERNETESCONT"
-            releaseDate = "20250725"
-            releaseVersion = "60"
-            optional = true
         }
     }
 

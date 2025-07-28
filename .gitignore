@@ -133,3 +133,5 @@ build
 .gradle
 src/main/gen
 token.txt
+.intellijPlatform
+.kotlin

@@ -8,7 +8,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.python.sdk.PythonSdkType
 import java.io.File
 import java.io.IOException
@@ -27,12 +27,7 @@ class PythonBytecodeToolWindow(private val project: Project) {
             editor.permanentHeaderComponent = panel {
                 row {
                     button("Update") {
-                        val text = getBytecode(project)
-                        ApplicationManager.getApplication().runWriteAction {
-                            editor.document.setReadOnly(false)
-                            editor.document.setText(text)
-                            editor.document.setReadOnly(true)
-                        }
+                        updateBytecode(editor)
                     }
                 }
             }
@@ -40,6 +35,15 @@ class PythonBytecodeToolWindow(private val project: Project) {
 
             return editor
         }
+
+    private fun updateBytecode(editor: EditorEx) {
+        val text = getBytecode(project)
+        ApplicationManager.getApplication().runWriteAction {
+            editor.document.setReadOnly(false)
+            editor.document.setText(text)
+            editor.document.setReadOnly(true)
+        }
+    }
 
     val content: JComponent
         get() {

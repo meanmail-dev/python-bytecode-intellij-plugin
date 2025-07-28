@@ -3,7 +3,7 @@
     <name>Python Bytecode</name>
     <version>SNAPSHOT</version>
     <idea-version since-build="243"/>
-    <vendor email="plugin@meanmail.ru" url="https://meanmail.dev">meanmail</vendor>
+    <vendor email="plugin@meanmail.ru" url="https://meanmail.dev">meanmail.dev</vendor>
     <description><![CDATA[View bytecode for python files (Python 3.4 and above).
 
 <ul>

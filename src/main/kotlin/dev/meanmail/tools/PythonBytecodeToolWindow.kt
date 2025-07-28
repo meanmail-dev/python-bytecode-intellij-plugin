@@ -1,5 +1,6 @@
 package dev.meanmail.tools
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
 
-class PythonBytecodeToolWindow(private val project: Project) {
+class PythonBytecodeToolWindow(private val project: Project) : Disposable {
     private val editor: EditorEx = createEditor()
 
     private fun createEditor(): EditorEx {
@@ -50,6 +51,10 @@ class PythonBytecodeToolWindow(private val project: Project) {
         get() {
             return editor.component
         }
+
+    override fun dispose() {
+        EditorFactory.getInstance().releaseEditor(editor)
+    }
 }
 
 

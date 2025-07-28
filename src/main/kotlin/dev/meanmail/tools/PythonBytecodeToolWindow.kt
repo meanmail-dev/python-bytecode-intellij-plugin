@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.ScrollType
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.SelectionEvent
@@ -261,7 +262,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
                         }
                         endIndex++
                     }
-                    
+
                     // Add this block to our list
                     bytecodeBlocks.add(Pair(sourceLineNumber, Pair(i, endIndex - 1)))
                 } catch (ex: NumberFormatException) {
@@ -295,7 +296,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
     }
 
     /**
-     * Highlights a range of lines in the bytecode editor.
+     * Highlights a range of lines in the bytecode editor and scrolls to make them visible.
      *
      * @param startLine The index of the first line to highlight
      * @param endLine The index of the last line to highlight
@@ -317,6 +318,38 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
         )
 
         highlightRanges.add(highlighter)
+
+        // Scroll to make the highlighted area visible
+        ApplicationManager.getApplication().invokeLater {
+            // Get the visible area height in lines
+            val visibleAreaHeight = editor.scrollingModel.visibleArea.height / editor.lineHeight
+
+            // Calculate the number of lines in the highlighted block
+            val startLine = editor.document.getLineNumber(startOffset)
+            val endLine = editor.document.getLineNumber(endOffset)
+            val blockHeight = endLine - startLine + 1
+
+            // Determine the appropriate scroll type based on block size
+            if (blockHeight > visibleAreaHeight) {
+                // If the block doesn't fit in the visible area, show the first line at the top
+                editor.scrollingModel.scrollTo(
+                    editor.offsetToLogicalPosition(startOffset),
+                    ScrollType.MAKE_VISIBLE
+                )
+            } else {
+                // If the block fits, center it as before
+                // Calculate the middle offset
+                val rawMiddleOffset = (startOffset + endOffset) / 2
+                // Get the line number at the middle offset
+                val middleLine = editor.document.getLineNumber(rawMiddleOffset)
+                // Get the start offset of that line to ensure middleOffset is at the beginning of a line
+                val middleOffset = editor.document.getLineStartOffset(middleLine)
+                editor.scrollingModel.scrollTo(
+                    editor.offsetToLogicalPosition(middleOffset),
+                    ScrollType.MAKE_VISIBLE
+                )
+            }
+        }
     }
 
     override fun updateBytecode() {

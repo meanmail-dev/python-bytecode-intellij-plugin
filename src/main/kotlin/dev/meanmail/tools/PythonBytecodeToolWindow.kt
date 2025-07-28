@@ -240,7 +240,9 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
 
         val bytecodeLines = bytecodeText.lines()
 
-        // Highlight corresponding bytecode lines
+        // First, collect all bytecode blocks and their source line numbers
+        val bytecodeBlocks = mutableListOf<Pair<Int, Pair<Int, Int>>>() // (sourceLineNumber, (startIndex, endIndex))
+
         var i = 0
         while (i < bytecodeLines.size) {
             val line = bytecodeLines[i]
@@ -249,26 +251,46 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
             if (lineNumberMatch != null) {
                 try {
                     val sourceLineNumber = lineNumberMatch.groupValues[1].toInt()
-                    if (sourceLineNumber in selectedLines) {
-                        // Find the end of this bytecode block
-                        var endIndex = i + 1
-                        while (endIndex < bytecodeLines.size) {
-                            val nextLine = bytecodeLines[endIndex]
-                            if (Regex("^\\s*\\d+\\s+").find(nextLine) != null) {
-                                break
-                            }
-                            endIndex++
-                        }
 
-                        // Highlight this block
-                        highlightBytecodeLines(i, endIndex - 1)
+                    // Find the end of this bytecode block
+                    var endIndex = i + 1
+                    while (endIndex < bytecodeLines.size) {
+                        val nextLine = bytecodeLines[endIndex]
+                        if (Regex("^\\s*\\d+\\s+").find(nextLine) != null) {
+                            break
+                        }
+                        endIndex++
                     }
+                    
+                    // Add this block to our list
+                    bytecodeBlocks.add(Pair(sourceLineNumber, Pair(i, endIndex - 1)))
                 } catch (ex: NumberFormatException) {
                     // Skip lines with invalid line numbers
-                    continue
                 }
             }
             i++
+        }
+
+        // Sort blocks by source line number
+        bytecodeBlocks.sortBy { it.first }
+
+        // Now determine the range of source lines covered by each block
+        for (j in bytecodeBlocks.indices) {
+            val (sourceLineNumber, indexPair) = bytecodeBlocks[j]
+            val (startIndex, endIndex) = indexPair
+
+            // Determine the end source line for this block
+            val endSourceLine = if (j < bytecodeBlocks.size - 1) {
+                bytecodeBlocks[j + 1].first - 1
+            } else {
+                Int.MAX_VALUE // Last block covers all remaining lines
+            }
+
+            // Check if any of the selected lines fall within this block's range
+            if (selectedLines.any { it in sourceLineNumber..endSourceLine }) {
+                // Highlight this block
+                highlightBytecodeLines(startIndex, endIndex)
+            }
         }
     }
 

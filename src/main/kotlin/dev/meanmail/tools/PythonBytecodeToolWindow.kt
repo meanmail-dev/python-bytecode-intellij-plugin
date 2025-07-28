@@ -83,10 +83,10 @@ fun execPython(sdk: Sdk, path: String, filename: String): String? {
         proc.waitFor(5, TimeUnit.SECONDS)
         val errors = proc.errorStream.bufferedReader().readText()
         if (errors.isNotEmpty()) {
-            throw IOException(errors)
+            return null
         }
         return proc.inputStream.bufferedReader().readText()
-    } catch (e: IOException) {
+    } catch (_: IOException) {
         return null
     }
 }

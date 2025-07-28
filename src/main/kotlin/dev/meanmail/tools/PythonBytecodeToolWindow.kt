@@ -68,6 +68,7 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
 
     /**
      * Updates the bytecode display with the current file's bytecode and sets up the listeners.
+     * Also triggers initial highlighting based on current selection or caret position.
      *
      * @param editor The editor to update
      */
@@ -82,6 +83,38 @@ class PythonBytecodeToolWindow(private val project: Project) : Disposable, Pytho
         // After updating bytecode, setup listeners
         setupSelectionListener()
         setupCaretListener()
+
+        // Trigger initial highlighting based on current selection or caret position
+        triggerInitialHighlighting()
+    }
+
+    /**
+     * Triggers initial highlighting based on the current selection or caret position.
+     * This is called after the bytecode is first displayed to ensure highlighting is updated.
+     */
+    private fun triggerInitialHighlighting() {
+        val currentEditor = currentSourceEditor ?: return
+        val document = currentEditor.document
+
+        // Check if there's a selection
+        val selectionModel = currentEditor.selectionModel
+        val selectedLines: Set<Int>
+
+        if (selectionModel.hasSelection()) {
+            // Get selected lines (1-based to match Python line numbers)
+            val startLine = document.getLineNumber(selectionModel.selectionStart) + 1
+            val endLine = document.getLineNumber(selectionModel.selectionEnd) + 1
+            selectedLines = (startLine..endLine).toSet()
+        } else {
+            // No selection, use the line where cursor is positioned
+            val caretModel = currentEditor.caretModel
+            val caretOffset = caretModel.offset
+            val caretLine = document.getLineNumber(caretOffset) + 1
+            selectedLines = setOf(caretLine)
+        }
+
+        // Highlight the bytecode for the selected lines
+        highlightBytecodeForLines(selectedLines)
     }
 
     /**

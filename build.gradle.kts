@@ -51,6 +51,13 @@ intellijPlatform {
             sinceBuild.set(config("platformSinceBuild"))
             untilBuild.set(provider { null })
         }
+
+        productDescriptor {
+            code = "PPYTHONBYTECODE"
+            releaseDate = "20250730"
+            releaseVersion = "202511"
+            optional = true
+        }
     }
 
     buildSearchableOptions = false

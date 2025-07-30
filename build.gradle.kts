@@ -55,7 +55,7 @@ intellijPlatform {
         productDescriptor {
             code = "PPYTHONBYTECODE"
             releaseDate = "20250730"
-            releaseVersion = "202511"
+            releaseVersion = "20252"
             optional = true
         }
     }

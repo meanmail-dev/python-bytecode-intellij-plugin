@@ -1,0 +1,22 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Python bytecode"
+                    anchor="right"
+                    factoryClass="dev.meanmail.tools.PythonBytecodeTool"/>
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="dev.meanmail.tools.PythonBytecodeFileListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+    </projectListeners>
+
+    <actions>
+        <action id="PythonBytecode.UpdateAction"
+                class="dev.meanmail.tools.UpdateBytecodeAction"
+                text="Update Bytecode"
+                description="Update the Python bytecode display"
+                icon="AllIcons.Actions.Refresh">
+        </action>
+    </actions>
+</idea-plugin>

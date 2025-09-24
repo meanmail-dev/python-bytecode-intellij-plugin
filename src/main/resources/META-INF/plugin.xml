@@ -18,7 +18,13 @@
 
 Your ratings and feedback are very important. The feature will appear the faster the more people request it.
 ]]></description>
-    <change-notes><![CDATA[<h3>2025.1 (July, 28, 2025)</h3>
+    <change-notes><![CDATA[<h3>2025.3 (September, 24, 2025)
+</h3>
+
+* Improve support IDEs
+
+<h3>2025.1 (July, 28, 2025)
+</h3>
 
 * Support latest IDEs
 
@@ -27,28 +33,6 @@ Your ratings and feedback are very important. The feature will appear the faster
 First release
 ]]></change-notes>
 
-    <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.python</depends>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Python bytecode"
-                    anchor="right"
-                    factoryClass="dev.meanmail.tools.PythonBytecodeTool"/>
-        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
-    </extensions>
-
-    <projectListeners>
-        <listener class="dev.meanmail.tools.PythonBytecodeFileListener"
-                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
-    </projectListeners>
-
-    <actions>
-        <action id="PythonBytecode.UpdateAction"
-                class="dev.meanmail.tools.UpdateBytecodeAction"
-                text="Update Bytecode"
-                description="Update the Python bytecode display"
-                icon="AllIcons.Actions.Refresh">
-        </action>
-    </actions>
+    <depends optional="true" config-file="python.xml">com.intellij.modules.python</depends>
 
 </idea-plugin>
